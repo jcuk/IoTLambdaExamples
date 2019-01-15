@@ -1,0 +1,29 @@
+#logonForm {
+  border: none;
+  padding: 1em;
+  font-family: Sans-serif;
+  font-size: 1em;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  margin-left: 10%;
+  width: 80%;
+  background-color:#D4E4F7;
+}
+
+#logonForm input {
+  font-family: Sans-serif;
+  width:10em;
+  font-size: 1em;
+  margin: 0 0 1em 0;
+}
+
+#logonForm input[type=button] {
+  background-color: #236AB9;
+  border:none;
+  border: none;
+  color:#FFFFF0;
+  
+}
+
+#logonForm h3 {
+   text-align:center;
+}
