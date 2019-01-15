@@ -5,10 +5,11 @@
 		<script src="../resources/aws-cognito-sdk.min.js"></script>
 	    <script src="../resources/amazon-cognito-identity.min.js"></script>
 		<script src="lambda.js"></script>
+		<title>Lambda Access Demo</title>
 	</head>
 	<body>
 		<form id="logonForm" action="javascript:fire(this.form.elements);">
-		    <h3>Demo Cognito log on</h3>
+		    <h3>Demo Cognito log on and Lambda Access</h3>
 		    User Name: <input type="text" id="formUserName" /> <br/>
 		    Password: <input type="password" id="formPassword" /> <br />
 		    <input type="button" value="Log in" onclick="testLambda(this.form.elements); return false;" />
