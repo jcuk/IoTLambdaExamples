@@ -39,7 +39,6 @@ function testLambda(params) {
     var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
     cognitoUser.authenticateUser(authenticationDetails, {
         onSuccess: function (result) {
-            var accessToken = result.getAccessToken().getJwtToken();
             var idToken = result.idToken.jwtToken;
             
             //console.log(idToken);
@@ -49,7 +48,7 @@ function testLambda(params) {
 	              credentials: new AWS.CognitoIdentityCredentials({
 	              	IdentityPoolId: identityPool,
 	                Logins: {
-	                	[cognitoLogin] : result.getIdToken().getJwtToken()
+	                	[cognitoLogin] : idToken
 	                }
 	              }),
 	              region: region

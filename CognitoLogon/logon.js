@@ -1,4 +1,4 @@
-//Log on to Cognito, establish AWS credentials then display the result 
+//Log on to Cognito then display the result 
 function cognitoLogon(params) {
 	
 //	Single user available 'testUser' with password 'Password1';
