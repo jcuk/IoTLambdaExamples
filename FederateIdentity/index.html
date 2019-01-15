@@ -4,15 +4,15 @@
 		<script src="https://sdk.amazonaws.com/js/aws-sdk-2.100.0.min.js"></script>
 		<script src="../resources/aws-cognito-sdk.min.js"></script>
 	    <script src="../resources/amazon-cognito-identity.min.js"></script>
-		<script src="logon.js"></script>
-		<title>Cognito Logon Demo</title>
+		<script src="federated.js"></script>
+		<title>Federated Identity Demo</title>
 	</head>
 	<body>
 		<form id="logonForm" action="javascript:fire(this.form.elements);">
-		    <h3>Demo Cognito log on</h3>
+		    <h3>Demo Cognito and Federated Identity log on</h3>
 		    User Name: <input type="text" id="formUserName" /> <br/>
 		    Password: <input type="password" id="formPassword" /> <br />
-		    <input type="button" value="Log in" onclick="cognitoLogon(this.form.elements); return false;" />
+		    <input type="button" value="Log in" onclick="testLogon(this.form.elements); return false;" />
 		</form>
 	</body>
 </html>

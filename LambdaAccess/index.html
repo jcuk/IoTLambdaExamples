@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<link rel="stylesheet" type="text/css" href="../resources/lambda.css">
+		<link rel="stylesheet" type="text/css" href="../resources/demo.css">
 		<script src="https://sdk.amazonaws.com/js/aws-sdk-2.100.0.min.js"></script>
 		<script src="../resources/aws-cognito-sdk.min.js"></script>
 	    <script src="../resources/amazon-cognito-identity.min.js"></script>
@@ -9,7 +9,7 @@
 	</head>
 	<body>
 		<form id="logonForm" action="javascript:fire(this.form.elements);">
-		    <h3>Demo Cognito log on and Lambda Access</h3>
+		    <h3>Demo Lambda Access</h3>
 		    User Name: <input type="text" id="formUserName" /> <br/>
 		    Password: <input type="password" id="formPassword" /> <br />
 		    <input type="button" value="Log in" onclick="testLambda(this.form.elements); return false;" />
