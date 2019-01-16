@@ -1,0 +1,18 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../resources/demo.css">
+		<script src="https://sdk.amazonaws.com/js/aws-sdk-2.100.0.min.js"></script>
+		<script src="../resources/aws-cognito-sdk.min.js"></script>
+	    <script src="../resources/amazon-cognito-identity.min.js"></script>
+		<script src="lambda.js"></script>
+		<title>JWT Lambda Demo</title>
+	</head>
+	<body>
+		<form id="logonForm" action="javascript:fire(this.form.elements);">
+		    <h3>JWT Validation in Lambda Demo</h3>
+		    User Name: <input type="text" id="formUserName" /> <br/>
+		    Password: <input type="password" id="formPassword" /> <br />
+		    <input type="button" value="Log in" onclick="testLambda(this.form.elements); return false;" />
+		</form>
+	</body>
+</html>
