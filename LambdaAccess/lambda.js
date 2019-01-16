@@ -64,8 +64,8 @@ function testLambda(params) {
 		            //AWS credentials are now established - call the lambda
 		            var lambda = new AWS.Lambda();
 					var payload = {
-						token : idToken
 					}
+					
 					var params = {
 					  FunctionName: 'simpleLambda',
 					  InvocationType: 'RequestResponse',
