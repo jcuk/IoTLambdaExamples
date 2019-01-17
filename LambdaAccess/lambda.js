@@ -57,6 +57,7 @@ function testLambda(params) {
 			//Now use our cognito logon to get our AWS credentials
 			AWS.config.credentials.get(function(err) {
 				if (err) {
+					alert(err);
 					console.log(err);
 				} else {
 					console.log("Retrieved credentials");
@@ -76,6 +77,7 @@ function testLambda(params) {
 					//Invoke the lambda and parse the response
 					lambda.invoke(params, function(err, data) {
 						if (err) {
+							alert(err);
 							console.log(err, err.stack);
 						} else {
 							console.log('Lambda called');
