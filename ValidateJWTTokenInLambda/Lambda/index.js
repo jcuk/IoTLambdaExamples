@@ -20,7 +20,7 @@ exports.handler = (event, context, callback) => {
 
 var validateToken = (token, callback) => {
 	if (token === undefined) {
-		throw new Error('Now JWTToken in request');
+		throw new Error('No JWTToken in request');
 	};
 	
     var sections = token.split('.');
