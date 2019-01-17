@@ -10,7 +10,11 @@ exports.handler = (event, context, callback) => {
     var token = event.token;
     try {
         validateToken(token, function(result) {
-            callback(null, 'JWT Claims are valid');    
+            const response = {
+                statusCode: 200,
+                body: JSON.stringify('JWT Claims are valid'),
+            };
+            callback(null, response);    
         });
 
     } catch (e) {
