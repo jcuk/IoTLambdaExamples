@@ -67,7 +67,7 @@ function testLambda(params) {
 						token : idToken
 					}
 					var params = {
-					  FunctionName: 'simpleLambda',
+					  FunctionName: 'validateJWTToken',
 					  InvocationType: 'RequestResponse',
 					  LogType: 'Tail',
 					  Payload: JSON.stringify(payload),

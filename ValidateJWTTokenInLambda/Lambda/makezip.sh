@@ -1,0 +1,2 @@
+zip -r lambda.zip .
+
