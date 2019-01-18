@@ -1,4 +1,4 @@
-#logonForm {
+.cognitoForm {
   border: none;
   padding: 1em;
   font-family: Sans-serif;
@@ -9,14 +9,14 @@
   background-color:#D4E4F7;
 }
 
-#logonForm input {
+.cognitoForm input {
   font-family: Sans-serif;
   width:10em;
   font-size: 1em;
   margin: 0 0 1em 0;
 }
 
-#logonForm input[type=button] {
+.cognitoForm input[type=button] {
   background-color: #236AB9;
   border:none;
   border: none;
@@ -24,6 +24,6 @@
   
 }
 
-#logonForm h3 {
+.cognitoForm h2, .cognitoForm h3, .cognitoForm h4 {
    text-align:center;
 }
