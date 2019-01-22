@@ -76,7 +76,7 @@ function cognitoLogon(params) {
 		newPasswordRequired: function(usrAttributes, requiredAttributes) {	
 			alert('New password required');
 			delete usrAttributes.email_verified;
-			cognitoUser.completeNewPasswordChallenge('AdminPassword#1', usrAttributes, this);
+			cognitoUser.completeNewPasswordChallenge('Password1', usrAttributes, this);
 		}
 	});
 }
@@ -108,7 +108,7 @@ function changeAttributeValue(params) {
 			cognitoidentityserviceprovider.adminUpdateUserAttributes( {
 				UserAttributes: attributeList,
 				UserPoolId: userPoolId,
-				Username: 'testUser'
+				Username: params.formUser.value
 			},
 			function(err, data) {
 				if (err){
