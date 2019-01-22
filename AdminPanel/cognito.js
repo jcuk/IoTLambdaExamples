@@ -76,7 +76,7 @@ function cognitoLogon(params) {
 		newPasswordRequired: function(usrAttributes, requiredAttributes) {	
 			alert('New password required');
 			delete usrAttributes.email_verified;
-			cognitoUser.completeNewPasswordChallenge('Password1', usrAttributes, this);
+			cognitoUser.completeNewPasswordChallenge('AdminPassword#1', usrAttributes, this);
 		}
 	});
 }
@@ -86,30 +86,38 @@ function changeAttributeValue(params) {
 		alert('Not logged in');
 		return;
 	}
-	
-	const cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider({
-		apiVersion: '2016-04-18'
-	});
-	
-	var attributeList = [];
-	var attribute = {
-			Name : 'custom:'+params.formAttribute.value,
-			Value : params.formAttributeValue.value
-	};
 
-	attributeList.push(attribute);
-	
-	cognitoidentityserviceprovider.adminUpdateUserAttributes( {
-			UserAttributes: attributeList,
-			UserPoolId: userPoolId,
-			Username: 'testUser'
-		},
-		function(err, data) {
-			if (err){
-				alert("Error updating attributes: "+err);
-			} else {
-				alert("Updated attribute");
+	AWS.config.credentials.get(function(err) {
+		if (err) {
+			alert(err);
+			console.log(err);
+		} else {
+
+			const cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider({
+				apiVersion: '2016-04-18'
+			});
+
+			var attributeList = [];
+			var attribute = {
+					Name : 'custom:'+params.formAttribute.value,
+					Value : params.formAttributeValue.value
+			};
+
+			attributeList.push(attribute);
+
+			cognitoidentityserviceprovider.adminUpdateUserAttributes( {
+				UserAttributes: attributeList,
+				UserPoolId: userPoolId,
+				Username: 'testUser'
+			},
+			function(err, data) {
+				if (err){
+					alert("Error updating attributes: "+err);
+				} else {
+					alert("Updated attribute");
+				}
 			}
+			);
 		}
-	);
+	});
 }
