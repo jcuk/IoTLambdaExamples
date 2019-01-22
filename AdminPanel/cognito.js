@@ -108,7 +108,7 @@ function changeAttributeValue(params) {
 			cognitoidentityserviceprovider.adminUpdateUserAttributes( {
 				UserAttributes: attributeList,
 				UserPoolId: userPoolId,
-				Username: 'testUser'
+				Username: params.formUser.value
 			},
 			function(err, data) {
 				if (err){
