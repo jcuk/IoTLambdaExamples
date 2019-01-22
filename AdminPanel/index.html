@@ -1,0 +1,28 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../resources/demo.css">
+		<script src="https://sdk.amazonaws.com/js/aws-sdk-2.100.0.min.js"></script>
+		<script src="../resources/aws-cognito-sdk.min.js"></script>
+	    <script src="../resources/amazon-cognito-identity.min.js"></script>
+		<script src="cognito.js"></script>
+		<title>Cognito Demo Admin Panel</title>
+	</head>
+	<body>
+		<div class="cognitoForm">
+			<h2>Demo Admin Panel</h2>
+			<form  action="javascript:fire(this.form.elements);">
+			    <h3>Log On</h3>
+			    User Name: <input type="text" id="formUserName" /> <br/>
+			    Password: <input type="password" id="formPassword" /> <br />
+			    <input type="button" value="Log in" onclick="cognitoLogon(this.form.elements); return false;" />
+			</form>
+			<hr/>
+			<form action="javascript:fire(this.form.elements);">
+			    <h3>Change Attribute</h3>
+			    Attribute: <input type="text" id="formAttribute" /> <br/>
+			    Value: <input type="text" id="formAttributeValue" /> <br />
+			    <input type="button" value="Change" onclick="changeAttributeValue(this.form.elements); return false;" />
+			</form>
+		</div>
+	</body>
+</html>
