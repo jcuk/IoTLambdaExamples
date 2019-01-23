@@ -11,9 +11,10 @@
 
 .cognitoForm input {
   font-family: Sans-serif;
-  width:10em;
   font-size: 1em;
   margin: 0 0 1em 0;
+  text-transform: none;
+  padding: 0.3em;
 }
 
 .cognitoForm input[type=button] {
@@ -21,7 +22,7 @@
   border:none;
   border: none;
   color:#FFFFF0;
-  
+  width:10em;
 }
 
 .cognitoForm h2, .cognitoForm h3, .cognitoForm h4 {
