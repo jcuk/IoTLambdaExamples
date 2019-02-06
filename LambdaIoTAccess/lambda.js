@@ -1,20 +1,22 @@
-//Log on to Cognito, establish AWS credentials then display the result 
+//Log on to Cognito, establish AWS credentials then display the result
+const region = 'eu-west-2';
+const userPoolId = 'eu-west-2_6Qk8UHkl5';
+const cognitoAppId = '41pboo7igtsbm6bfi18sje5p96';
+const identityPool = 'eu-west-2:72c461e0-ca5f-47ce-882e-bee6cc92812b';
+const cognitoLogin = 'cognito-idp.'+region+'.amazonaws.com/'+userPoolId;
+const iotEndpoint = 'ah0p1efr5o1cl-ats.iot.eu-west-2.amazonaws.com';
+const topic = 'iotdemo/lambda/schedule';
+
 function testLambda(params) {
 
 //	Single user available 'testUser' with password 'Password1';
 
 	var user = params.formUserName.value;
 	var pass = params.formPassword.value
-
-	var region = 'eu-west-2';
-	var userPool = 'eu-west-2_6Qk8UHkl5';
-	var cognitoAppId = '41pboo7igtsbm6bfi18sje5p96';
-	var identityPool = 'eu-west-2:72c461e0-ca5f-47ce-882e-bee6cc92812b';
-	var cognitoLogin = 'cognito-idp.'+region+'.amazonaws.com/'+userPool;
 	
 	var authenticationData = {
-			Username : user,
-			Password : pass,
+		Username : user,
+		Password : pass,
 	};
 
 	// Need to provide placeholder keys unless unauthorised user access is enabled for user pool
@@ -23,14 +25,14 @@ function testLambda(params) {
 	var authenticationDetails = new AWSCognito.CognitoIdentityServiceProvider.AuthenticationDetails(authenticationData);
 
 	var poolData = {
-			UserPoolId : userPool,
-			ClientId : cognitoAppId
+		UserPoolId : userPoolId,
+		ClientId : cognitoAppId
 	};
 	var userPool = new AWSCognito.CognitoIdentityServiceProvider.CognitoUserPool(poolData);
 
 	var userData = {
-			Username : user,
-			Pool : userPool
+		Username : user,
+		Pool : userPool
 	};
 
 	AWS.config.region = region;
@@ -65,15 +67,15 @@ function testLambda(params) {
 					//AWS credentials are now established - call the lambda
 					var lambda = new AWS.Lambda();
 					var payload = {
-							token:idToken
+						token:idToken
 					}
 
 					//Ensure policy is attached to cognito user
 					var params = {
-							FunctionName: 'demoLambdaIoTAccess',
-							InvocationType: 'RequestResponse',
-							LogType: 'Tail',
-							Payload: JSON.stringify(payload),
+						FunctionName: 'demoLambdaIoTAccess',
+						InvocationType: 'RequestResponse',
+						LogType: 'Tail',
+						Payload: JSON.stringify(payload),
 					};
 
 					//Invoke the lambda and parse the response
@@ -84,23 +86,12 @@ function testLambda(params) {
 						} else {
 							console.log('Lambda called');
 							var response = JSON.parse(data.Payload);
-					
-			      	        var iotdata = new AWS.IotData({
-			      	        	endpoint: 'ah0p1efr5o1cl-ats.iot.eu-west-2.amazonaws.com',
-			      	        	credentials: AWS.config.credentials,
-			      	        	region: region
-			      	        });
-			      	        
-			      	        var params = {
-	      	        		  topic: 'iotdemo/lambda/schedule', 
-	      	        		  payload: 'Data from web page',
-	      	        		  qos: 0
-	      	        		};
-		  	        		iotdata.publish(params, function(err, data) {
-		  	        		  if (err) console.log(err, err.stack); // an error occurred
-		  	        		  else     console.log(data);           // successful response
-		  	        		});
-		  	        		
+							
+							//Subscribe to IoT 
+						    var requestUrl = SigV4Utils.getSignedUrl(iotEndpoint, region, AWS.config.credentials);
+						    
+						    subscribe(requestUrl);
+						        		  	       		
 							alert('Response from lambda: '+response.body);
 						}
 					});
@@ -120,4 +111,28 @@ function testLambda(params) {
 			cognitoUser.completeNewPasswordChallenge('Password1', usrAttributes, this);
 		}
 	});
+}
+
+//Publish a message to our IoT Topic
+function publishMessage(payload) {
+  var iotdata = new AWS.IotData({
+		endpoint: iotEndpoint,
+		credentials: AWS.config.credentials,
+		region: region
+    });
+    
+    var params = {
+		topic: topic, 
+		payload: payload,
+		qos: 0
+	};
+	iotdata.publish(params, function(err, data) {
+		if (err) console.log(err, err.stack); // an error occurred
+		else     console.log(data);           // successful response
+	});
+}
+
+//Subscribe to an IoT Topic
+function subscribe(url) {
+	console.log('URL: '+url);
 }
