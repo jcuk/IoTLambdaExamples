@@ -133,6 +133,39 @@ function publishMessage(payload) {
 }
 
 //Subscribe to an IoT Topic
-function subscribe(url) {
-	console.log('URL: '+url);
+function subscribe(requestUrl) {
+	console.log('URL: '+requestUrl);
+    var clientId = String(Math.random()).replace('.', '');
+    var client = new Paho.MQTT.Client(requestUrl, clientId);
+    var connectOptions = {
+        onSuccess: function () {
+            console.log('connected');
+
+            // subscribe to the topic
+            client.subscribe(topic);
+
+            // publish a lifecycle event
+            message = new Paho.MQTT.Message('{"id":"' + credentials.identityId + '"}');
+            message.destinationName = topic;
+            console.log(message);
+            client.send(message);
+        },
+        useSSL: true,
+        timeout: 3,
+        mqttVersion: 4,
+        onFailure: function () {
+            console.error('connect failed');
+        }
+    };
+    client.connect(connectOptions);
+
+    client.onMessageArrived = function (message) {
+
+        try {
+            console.log("msg arrived: " +  message.payloadString);
+        } catch (e) {
+            console.log("error! " + e);
+        }
+
+    };
 }

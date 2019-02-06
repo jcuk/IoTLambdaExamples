@@ -38,6 +38,7 @@ SigV4Utils.getSignedUrl = function(host, region, credentials) {
 
     canonicalQuerystring += '&X-Amz-Signature=' + signature;
     if (credentials.sessionToken) {
+    	// Is this needed?
         canonicalQuerystring += '&X-Amz-Security-Token=' + encodeURIComponent(credentials.sessionToken);
     }
 
