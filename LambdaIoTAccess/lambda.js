@@ -129,7 +129,7 @@ function subscribe(requestUrl) {
         onSuccess: function () {
             console.log('connected');
 
-            // subscribe to the topic
+            //subscribe to the topic as soon as we are connected
             client.subscribe(topic);
             
         },
@@ -143,12 +143,21 @@ function subscribe(requestUrl) {
     client.connect(connectOptions);
 
     client.onMessageArrived = function (message) {
-
-        try {
-            console.log("msg arrived: " +  message.payloadString);
-        } catch (e) {
-            console.log("error! " + e);
-        }
-
+	    try {
+	        console.log("msg arrived: " +  message.payloadString);
+	        newMessage(message.payloadString)
+	    } catch (e) {
+	        console.log("error! " + e);
+	    }
     };
+}
+
+function newMessage(message) {
+	var messageElement = document.getElementById('iotMessage');
+	setTimeout(function() {
+		messageElement.classList.remove("flash");
+	}, 650);
+	messageElement.innerHTML = message;
+
+	messageElement.classList.add("flash");
 }

@@ -1,30 +1,61 @@
 .cognitoForm {
-  border: none;
-  padding: 1em;
-  font-family: Sans-serif;
-  font-size: 1em;
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-  margin-left: 10%;
-  width: 80%;
-  background-color:#D4E4F7;
+	border: none;
+	padding: 1em;
+	font-family: Sans-serif;
+	font-size: 1em;
+	box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0
+		rgba(0, 0, 0, 0.19);
+	margin-left: 10%;
+	width: 80%;
+	background-color: #D4E4F7;
 }
 
 .cognitoForm input {
-  font-family: Sans-serif;
-  font-size: 1em;
-  margin: 0 0 1em 0;
-  text-transform: none;
-  padding: 0.3em;
+	font-family: Sans-serif;
+	font-size: 1em;
+	margin: 0 0 1em 0;
+	text-transform: none;
+	padding: 0.3em;
 }
 
 .cognitoForm input[type=button] {
-  background-color: #236AB9;
-  border:none;
-  border: none;
-  color:#FFFFF0;
-  width:10em;
+	background-color: #236AB9;
+	border: none;
+	border: none;
+	color: #FFFFF0;
+	width: 10em;
 }
 
 .cognitoForm h2, .cognitoForm h3, .cognitoForm h4 {
-   text-align:center;
+	text-align: center;
+}
+
+#iotMessage {
+	text-align: center;
+	border: 1px solid;
+	border-radius: 5px;
+	border-color: #236AB9;
+    background-color: white;
+    height: 1em;
+}
+
+#messageDiv {
+	margin: 1em;
+}
+
+@keyframes fadeFromRed {
+	from {
+		background-color: red;
+	}
+	
+	to {
+		background-color: inherited;
+	}
+}
+
+/* The element to apply the animation to */
+.flash {
+	background-color: transparent;
+	animation-name: fadeFromRed;
+	animation-duration: 0.5s;
 }
