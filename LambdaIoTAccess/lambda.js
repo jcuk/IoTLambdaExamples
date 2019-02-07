@@ -115,21 +115,9 @@ function testLambda(params) {
 
 //Publish a message to our IoT Topic
 function publishMessage(payload) {
-  var iotdata = new AWS.IotData({
-		endpoint: iotEndpoint,
-		credentials: AWS.config.credentials,
-		region: region
-    });
-    
-    var params = {
-		topic: topic, 
-		payload: payload,
-		qos: 0
-	};
-	iotdata.publish(params, function(err, data) {
-		if (err) console.log(err, err.stack); // an error occurred
-		else     console.log(data);           // successful response
-	});
+    message = new Paho.MQTT.Message(payload);
+    message.destinationName = topic;
+    client.send(message);
 }
 
 //Subscribe to an IoT Topic
@@ -143,18 +131,13 @@ function subscribe(requestUrl) {
 
             // subscribe to the topic
             client.subscribe(topic);
-
-            // publish a lifecycle event
-            message = new Paho.MQTT.Message('{"id":"' + credentials.identityId + '"}');
-            message.destinationName = topic;
-            console.log(message);
-            client.send(message);
+            
         },
         useSSL: true,
         timeout: 3,
         mqttVersion: 4,
-        onFailure: function () {
-            console.error('connect failed');
+        onFailure: function (err) {
+            console.error('connect failed '+JSON.stringify(err));
         }
     };
     client.connect(connectOptions);
