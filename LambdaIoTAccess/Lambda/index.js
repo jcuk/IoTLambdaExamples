@@ -13,25 +13,28 @@ exports.handler = (event, context, callback) => {
     var token = event.token;
     try {
         validateToken(token, function(result) {
-            
             //Claims are valid at this point
+            
+            //Attach our IoT policy to our the cognitio identity of the 
+            //  user who is logging in. NB both this AND the IAM policy for IoT are needed for
+            //  a cognito user to be grated access to IoT
             var params = {
               policyName: 'demoSchedule',
-              target: context.identity.cognitoidentityid
+              target: context.identity.cognitoIdentityId
             };
             
             iot.attachPolicy(params, function(err, data) {
             var response;
             
               if (err) {
-                  console.log(err, err.stack); // an error occurred
+                  console.log(err, err.stack); // an error attaching policy
                   response = {
-                    statusCode: 200,
+                    statusCode: 500,
                     body: JSON.stringify(err),
                   };
                   
               } else {
-                  console.log(data);           // successful response
+                  console.log(data);           // policy attached
                   response = {
                     statusCode: 200,
                     body: JSON.stringify(data),
