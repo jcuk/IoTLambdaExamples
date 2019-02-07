@@ -7,6 +7,8 @@ const cognitoLogin = 'cognito-idp.'+region+'.amazonaws.com/'+userPoolId;
 const iotEndpoint = 'ah0p1efr5o1cl-ats.iot.eu-west-2.amazonaws.com';
 const topic = 'iotdemo/lambda/schedule';
 
+var pahoClient;
+
 function testLambda(params) {
 
 //	Single user available 'testUser' with password 'Password1';
@@ -91,8 +93,6 @@ function testLambda(params) {
 						    var requestUrl = SigV4Utils.getSignedUrl(iotEndpoint, region, AWS.config.credentials);
 						    
 						    subscribe(requestUrl);
-						        		  	       		
-							alert('Response from lambda: '+response.body);
 						}
 					});
 				}
@@ -117,37 +117,40 @@ function testLambda(params) {
 function publishMessage(payload) {
     message = new Paho.MQTT.Message(payload);
     message.destinationName = topic;
-    client.send(message);
+    pahoClient.send(message);
 }
 
 //Subscribe to an IoT Topic
 function subscribe(requestUrl) {
 	console.log('URL: '+requestUrl);
     var clientId = String(Math.random()).replace('.', '');
-    var client = new Paho.MQTT.Client(requestUrl, clientId);
+    pahoClient = new Paho.MQTT.Client(requestUrl, clientId);
     var connectOptions = {
         onSuccess: function () {
             console.log('connected');
 
             //subscribe to the topic as soon as we are connected
-            client.subscribe(topic);
+            pahoClient.subscribe(topic);
+            
+            alert('Connected to IoT');
+            document.getElementById("messageButton").disabled = false; 
             
         },
         useSSL: true,
         timeout: 3,
         mqttVersion: 4,
         onFailure: function (err) {
-            console.error('connect failed '+JSON.stringify(err));
+            alert('IoT connect failed '+JSON.stringify(err));
         }
     };
-    client.connect(connectOptions);
+    pahoClient.connect(connectOptions);
 
-    client.onMessageArrived = function (message) {
+    pahoClient.onMessageArrived = function (message) {
 	    try {
-	        console.log("msg arrived: " +  message.payloadString);
+	        console.log("message: " +  message.payloadString);
 	        newMessage(message.payloadString)
 	    } catch (e) {
-	        console.log("error! " + e);
+	        console.log("error: " + e);
 	    }
     };
 }

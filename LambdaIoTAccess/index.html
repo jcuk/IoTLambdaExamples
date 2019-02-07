@@ -5,10 +5,7 @@
 		<script src="../resources/aws-cognito-sdk.min.js"></script>
 	    <script src="../resources/amazon-cognito-identity.min.js"></script>
 	    <script src="../resources/sig4utils.js"></script>
-	    <!--   <script src="../resources/mqttws31.min.js"></script> -->
-	    
-	    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
-	    
+	    <script src="../resources/mqttws31.min.js"></script>
 	    
 		<script src="lambda.js"></script>
 		<title>Lambda IoT Access Demo</title>
@@ -18,7 +15,12 @@
 		    <h3>Demo IoT in Lambda</h3>
 		    User Name: <input type="text" id="formUserName" /> <br/>
 		    Password: <input type="password" id="formPassword" /> <br />
-		    <input type="button" value="Log in" onclick="testLambda(this.form.elements); return false;" />
+		    <div>
+		     	<input type="button" value="Log in" onclick="testLambda(this.form.elements); return false;" />
+		    </div>
+			<div>
+				<input type="button" value="Send message" id="messageButton" onclick="publishMessage('Hello from the browser at '+(new Date())); return false;" disabled />
+			</div>
 		    <div id='messageDiv'>Incoming IoT message:
 		    	<div id='iotMessage'></div>
 		    </div>

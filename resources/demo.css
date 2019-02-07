@@ -36,7 +36,8 @@
 	border-radius: 5px;
 	border-color: #236AB9;
     background-color: white;
-    height: 1em;
+	height: 3em;
+    padding-top: 0.5em;
 }
 
 #messageDiv {
@@ -53,9 +54,12 @@
 	}
 }
 
-/* The element to apply the animation to */
 .flash {
 	background-color: transparent;
 	animation-name: fadeFromRed;
 	animation-duration: 0.5s;
+}
+
+.cognitoForm input[type=button]:disabled {
+    opacity: 0.5;
 }
