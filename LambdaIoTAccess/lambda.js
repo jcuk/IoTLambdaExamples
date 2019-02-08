@@ -11,8 +11,7 @@ var pahoClient;
 
 function testLambda(params) {
 
-//	Single user available 'testUser' with password 'Password1';
-
+//	Single user available 'iotUser' with password 'Password1';
 	var user = params.formUserName.value;
 	var pass = params.formPassword.value
 	
