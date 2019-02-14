@@ -75,7 +75,7 @@ function testLambda(params) {
 
 					//Ensure policy is attached to cognito user
 					var params = {
-						FunctionName: 'demoLambdaIoTDynamicPolicy',
+						FunctionName: 'demoDynamicIoTPolicy',
 						InvocationType: 'RequestResponse',
 						LogType: 'Tail',
 						Payload: JSON.stringify(payload),
@@ -89,6 +89,8 @@ function testLambda(params) {
 						} else {
 							console.log('Lambda called');
 							var response = JSON.parse(data.Payload);
+							//Body of response contains department / zone e.g:
+							// {"zone":"A","department":"1"}"
 							
 							//Subscribe to IoT 
 						    var requestUrl = SigV4Utils.getSignedUrl(iotEndpoint, region, AWS.config.credentials);
