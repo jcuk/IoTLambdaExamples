@@ -7,7 +7,7 @@
 	    <script src="../resources/sig4utils.js"></script>
 	    <script src="../resources/mqttws31.min.js"></script>
 	    
-		<script src="iotAccess.js"></script>
+		<script src="iotDynamicPolicy.js"></script>
 		<title>Lambda Dynamic Policy IoT Demo</title>
 	</head>
 	<body>
@@ -21,8 +21,13 @@
 			<div>
 				<input type="button" value="Send message" id="messageButton" onclick="publishMessage('Hello from the browser at '+(new Date())); return false;" disabled />
 			</div>
-		    <div id='messageDiv'>Incoming IoT message:
-		    	<div id='iotMessage'></div>
+		    <div id='messageDiv'>Incoming IoT messages:
+		    	<div class='iotMessage'></div>
+		    	<div class='iotMessage'></div>
+		    	<div class='iotMessage'></div>
+		    	<div class='iotMessage'></div>
+		    	<div class='iotMessage'></div>
+		    	<div class='iotMessage'></div>
 		    </div>
 		</form>
 	</body>

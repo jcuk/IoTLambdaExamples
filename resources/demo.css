@@ -30,7 +30,7 @@
 	text-align: center;
 }
 
-#iotMessage {
+.iotMessage {
 	text-align: center;
 	border: 1px solid;
 	border-radius: 5px;
@@ -38,6 +38,7 @@
     background-color: white;
 	height: 3em;
     padding-top: 0.5em;
+    margin-top: 0.5em;
 }
 
 #messageDiv {
@@ -50,12 +51,12 @@
 	}
 	
 	to {
-		background-color: inherited;
+		background-color: white;
 	}
 }
 
 .flash {
-	background-color: transparent;
+	background-color: white;
 	animation-name: fadeFromRed;
 	animation-duration: 0.5s;
 }

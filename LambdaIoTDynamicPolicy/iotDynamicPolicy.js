@@ -9,6 +9,8 @@ const topic = 'iotdemo/lambda/schedule';
 
 var pahoClient;
 
+var x = 0;
+
 function testLambda(params) {
 
 //	Single user available 'iotUser' with password 'Password1';
@@ -154,12 +156,19 @@ function subscribe(requestUrl) {
     };
 }
 
+//Update the page with the incoming message, and move all the old messages down the page
 function newMessage(message) {
-	var messageElement = document.getElementById('iotMessage');
+	var messages = document.querySelectorAll('#messageDiv .iotMessage');
+	var incomingSlot = messages[0];
+	
+	for (index=messages.length-1;index>0;index--) {
+		messages[index].innerHTML = messages[index-1].innerHTML;
+	}
+	
+	incomingSlot.innerHTML = message;
+	
 	setTimeout(function() {
-		messageElement.classList.remove("flash");
+		incomingSlot.classList.remove("flash");
 	}, 650);
-	messageElement.innerHTML = message;
-
-	messageElement.classList.add("flash");
+	incomingSlot.classList.add("flash");
 }
