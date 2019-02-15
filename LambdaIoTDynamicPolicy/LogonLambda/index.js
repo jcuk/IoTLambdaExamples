@@ -7,15 +7,18 @@ const app_client_id = '41pboo7igtsbm6bfi18sje5p96';
 const keys_url = 'https://cognito-idp.' + region + '.amazonaws.com/' + userpool_id + '/.well-known/jwks.json';
 
 const baseTopic = 'iotdemo/organisation';
+const basePolicyName = 'iotdemo-organisation-dep';
 
 exports.handler = (event, context, callback) => {
     var token = event.token;
     try {
         validateToken(token, function(claims) {
-            //Claims should now contain department and zone
+            //Claims should now contain department and zone. Form the allowed topic...
             const topic = makeTopic(claims);
-
             claims.topic = topic;
+            
+            // .. and the canonical policy name for this topic
+            const policyName = makePolicyName(claims);
 
             const response = {
                 statusCode: 200,
@@ -93,6 +96,8 @@ var validateToken = (token, callback) => {
     });
 };
 
+// Given the zone and the department a user has access to, form the topic that
+//  represents this access
 var makeTopic = (claims) => {
     var topic = baseTopic;
     if (claims.department=='*') {
@@ -103,4 +108,27 @@ var makeTopic = (claims) => {
         return topic+'/*';
     }
     return topic + '/zone'+claims.zone+'/*';
+};
+
+// Given the zone and the department a user has access to, form the canonical
+//  name that the IoT policy for that access will be called
+var makePolicyName = (claims) => {
+    //iotdemo-organisation-dep<department>-zone<zone>
+    var policyName = basePolicyName;
+    
+    if (claims.department=='*') {
+        policyName+='All';
+    } else {
+        policyName+=claims.department;
+    }
+    
+    policyName +='-zone';
+    
+    if (claims.zone=='*') {
+        policyName+='All';
+    } else {
+        policyName+=claims.zone;
+    }
+    
+    return policyName;
 };
