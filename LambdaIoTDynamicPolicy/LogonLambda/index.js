@@ -1,7 +1,7 @@
 const https = require('https');
 const jose = require('node-jose');
 const AWS = require('aws-sdk');
-var iot = new AWS.Iot({apiVersion: '2015-05-28'});
+const iot = new AWS.Iot({apiVersion: '2015-05-28'});
 
 const region = 'eu-west-2';
 const userpool_id = 'eu-west-2_6Qk8UHkl5';
@@ -155,29 +155,31 @@ var createPolicyIfNotExists = (policyName, topic) => {
         };
 
         iot.getPolicy(iotPolicyParams, function(err, data) {
-            if (err.code === 'ResourceNotFoundException') {
-                console.log('IoT Policy '+policyName+' not found. Creating.');
-
-                //TODO: Populate document
-                iotPolicyParams.policyDocument = '';
-
-                iot.createPolicy(iotPolicyParams, function(err, data) {
-                    if (err) {
-                        //Error creating policy
-                        reject(new Error(err));
-                    } else {
-                        console.log('IoT Policy '+policyName+'created');
-                        resolve(policyName);
-                    }
-                });
-
-            } else if (err) {
-                //Error finding policy
-                reject(new Error(err));
+            if (err) {
+                if (err.code === 'ResourceNotFoundException') {
+                    console.log('IoT Policy '+policyName+' not found. Creating.');
+    
+                    iotPolicyParams.policyDocument = '{"Version": "2012-10-17",'+
+                    '"Statement": [{"Effect": "Allow","Action":["iot:connect","iot:subscribe"],'+
+                    '"Resource": "*"},{"Effect": "Allow","Action": ["iot:receive","iot:publish"],'+
+                    '"Resource": "arn:aws:iot:'+region+':'+process.env.account+':'+topic+'"}]}';
+                    iot.createPolicy(iotPolicyParams, function(err, data) {
+                        if (err) {
+                            //Error creating policy
+                            reject(new Error(err));
+                        } else {
+                            console.log('IoT Policy '+policyName+' created');
+                            resolve(policyName);
+                        }
+                    });
+                } else {
+                    //Error finding policy
+                    reject(new Error(err));
+                }
             } else {
                 //Policy already exists. All ok
                 resolve(policyName);
             }
         });
     });
-}
+};
