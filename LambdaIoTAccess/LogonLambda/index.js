@@ -1,56 +1,53 @@
-var https = require('https');
-var jose = require('node-jose');
+const https = require('https');
+const jose = require('node-jose');
+const AWS = require('aws-sdk');
+const iot = new AWS.Iot({apiVersion: '2015-05-28'});
 
-var AWS = require('aws-sdk');
-var iot = new AWS.Iot({apiVersion: '2015-05-28'});
+const region = 'eu-west-2';
+const userpool_id = 'eu-west-2_6Qk8UHkl5';
+const app_client_id = '41pboo7igtsbm6bfi18sje5p96';
+const keys_url = 'https://cognito-idp.' + region + '.amazonaws.com/' + userpool_id + '/.well-known/jwks.json';
 
-var region = 'eu-west-2';
-var userpool_id = 'eu-west-2_6Qk8UHkl5';
-var app_client_id = '41pboo7igtsbm6bfi18sje5p96';
-var keys_url = 'https://cognito-idp.' + region + '.amazonaws.com/' + userpool_id + '/.well-known/jwks.json';
+const baseTopic = 'iotdemo/organisation';
+const basePolicyName = 'iotdemo-organisation-dep';
 
 exports.handler = (event, context, callback) => {
-	var token = event.token;
-	try {
-		validateToken(token, function(result) {
-			//Claims are valid at this point
+    var token = event.token;
+    try {
+        validateToken(token, function(claims) {
+            //Claims should now contain department and zone. Form the allowed topic...
+            const topic = makeTopic(claims);
+            claims.topic = topic;
 
-			//Attach our IoT policy to our the cognitio identity of the 
-			//  user who is logging in. NB both this AND the IAM policy for IoT are needed for
-			//  a cognito user to be granted access to IoT
-			var params = {
-				//IoT Policy that allows access to /iotdemo/lambda/schedule topic
-				policyName: 'demoSchedule',
+            // .. and the canonical policy name for this topic
+            const policyName = makePolicyName(claims);
+
+            //...and prepare to attach the policy to the cognito identity
+            const attachPolicyParmas = {
+				policyName: policyName,
 				target: context.identity.cognitoIdentityId
-			};
+            };
 
-			iot.attachPolicy(params, function(err, data) {
-				var response;
-
-				if (err) {
-					console.log(err, err.stack); // an error attaching policy
-					response = {
-							statusCode: 500,
-							body: JSON.stringify(err),
-					};
-
-				} else {
-					console.log(data);           // policy attached
-					response = {
-							statusCode: 200,
-							body: JSON.stringify(data),
-					};
-				}
-
-				callback(null, response);    
-
-			});
-
-		});
-
-	} catch (e) {
-		callback(e);
-	}
+            //Create a policy (if we need one). Then attach it to our user
+            createPolicyIfNotExists(policyName, topic)
+                .then(() => iot.attachPolicy(attachPolicyParmas).promise())
+                .then(function (result) {
+                    console.log('Policy found or created');
+                    const response = {
+                        statusCode: 200,
+                        body: JSON.stringify(claims),
+                    };
+                    callback(null, response);
+                })
+                .catch(function (error) {
+                    console.log('Error managing IoT policy');
+                    console.log(error.stack);
+                    callback(error);
+                });
+        });
+    } catch (e) {
+        callback(e);
+    }
 };
 
 var validateToken = (token, callback) => {
@@ -58,57 +55,136 @@ var validateToken = (token, callback) => {
 		throw new Error('No JWTToken in request');
 	}
 
-	var sections = token.split('.');
-	// get the kid from the headers prior to verification
-	var header = jose.util.base64url.decode(sections[0]);
-	header = JSON.parse(header);
-	var kid = header.kid;
-	// download the public keys
-	https.get(keys_url, function(response) {
-		if (response.statusCode == 200) {
-			response.on('data', function(body) {
-				var keys = JSON.parse(body)['keys'];
-				// search for the kid in the downloaded public keys
-				var key_index = -1;
-				for (var i=0; i < keys.length; i++) {
-					if (kid == keys[i].kid) {
-						key_index = i;
-						break;
-					}
-				}
-				if (key_index == -1) {
-					console.log('Public key not found in jwks.json');
-					throw new Error('Public key not found in jwks.json');
-				}
-				// construct the public key
-				jose.JWK.asKey(keys[key_index]).
-				then(function(result) {
-					// verify the signature
-					jose.JWS.createVerify(result).
-					verify(token).
-					then(function(result) {
-						// now we can extract the claims
-						var claims = JSON.parse(result.payload);
-						// we need to verify the token expiration...
-						var current_ts = Math.floor(new Date() / 1000);
-						if (current_ts > claims.exp) {
-							throw new Error('Token has expired');
-						}
-						// ...and the audience (i.e. the token has come from the correct user pool)
-						if (claims.aud != app_client_id) {
-							throw new Error('Token was not issued for this audience');
-						}
+    var sections = token.split('.');
+    // get the kid from the headers prior to verification
+    var header = jose.util.base64url.decode(sections[0]);
+    header = JSON.parse(header);
+    var kid = header.kid;
+    // download the public keys
+    https.get(keys_url, function(response) {
+        if (response.statusCode == 200) {
+            response.on('data', function(body) {
+                var keys = JSON.parse(body)['keys'];
+                // search for the kid in the downloaded public keys
+                var key_index = -1;
+                for (var i=0; i < keys.length; i++) {
+                        if (kid == keys[i].kid) {
+                            key_index = i;
+                            break;
+                        }
+                }
+                if (key_index == -1) {
+                    console.log('Public key not found in jwks.json');
+                    throw new Error('Public key not found in jwks.json');
+                }
+                // construct the public key
+                jose.JWK.asKey(keys[key_index]).
+                then(function(result) {
+                    // verify the signature
+                    jose.JWS.createVerify(result).
+                    verify(token).
+                    then(function(result) {
+                        // now we can extract the claims
+                        var claims = JSON.parse(result.payload);
+                        // we need to verify the token expiration...
+                        var current_ts = Math.floor(new Date() / 1000);
+                        if (current_ts > claims.exp) {
+                            throw new Error('Token has expired');
+                        }
+                        // ...and the audience (i.e. the token has come from the correct user pool)
+                        if (claims.aud != app_client_id) {
+                            throw new Error('Token was not issued for this audience');
+                        }
 
-						//At this point, the claims are valid. We can use them from here
-						var validClaims = {
-								testAttribute:claims['custom:testAttribute']
-						};
+                        //At this point, the claims are valid. We can use them from here
+                        var validClaims = {
+                        	zone:claims['custom:zone'],
+                        	department:claims['custom:department']
+                        };
 
-						callback(validClaims);
+                        console.log('claims:'+JSON.stringify(claims));
+                        console.log('valid claims'+JSON.stringify(validClaims));
 
-					});
-				});
-			});
-		}
-	});
+                        callback(validClaims);
+
+                    });
+                });
+            });
+        }
+    });
+};
+
+// Given the zone and the department a user has access to, form the topic that
+//  represents this access
+var makeTopic = (claims) => {
+    var topic = baseTopic;
+    if (claims.department=='*') {
+        return topic+'/*';
+    }
+    topic += '/department'+claims.department;
+    if (claims.zone=='*') {
+        return topic+'/*';
+    }
+    return topic + '/zone'+claims.zone+'/*';
+};
+
+// Given the zone and the department a user has access to, form the canonical
+//  name that the IoT policy for that access will be called
+var makePolicyName = (claims) => {
+    //iotdemo-organisation-dep<department>-zone<zone>
+    var policyName = basePolicyName;
+
+    if (claims.department=='*') {
+        policyName+='All';
+    } else {
+        policyName+=claims.department;
+    }
+
+    policyName +='-zone';
+
+    if (claims.zone=='*') {
+        policyName+='All';
+    } else {
+        policyName+=claims.zone;
+    }
+
+    return policyName;
+};
+
+// Given a policy name and topic, check if that IoT policy exists, and if not
+//  create one. Involves multiple async calls, so implemented as a Promise
+var createPolicyIfNotExists = (policyName, topic) => {
+    return new Promise((resolve, reject) => {
+        var iotPolicyParams = {
+            policyName: policyName
+        };
+
+        iot.getPolicy(iotPolicyParams, function(err, data) {
+            if (err) {
+                if (err.code === 'ResourceNotFoundException') {
+                    console.log('IoT Policy '+policyName+' not found. Creating.');
+
+                    iotPolicyParams.policyDocument = '{"Version": "2012-10-17",'+
+                        '"Statement": [{"Effect": "Allow","Action":["iot:connect","iot:subscribe"],'+
+                        '"Resource": "*"},{"Effect": "Allow","Action": ["iot:receive","iot:publish"],'+
+                        '"Resource": "arn:aws:iot:'+region+':'+process.env.account+':'+topic+'"}]}';
+                    iot.createPolicy(iotPolicyParams, function(err, data) {
+                        if (err) {
+                            //Error creating policy
+                            reject(new Error(err));
+                        } else {
+                            console.log('IoT Policy '+policyName+' created');
+                            resolve(policyName);
+                        }
+                    });
+                } else {
+                    //Error finding policy
+                    reject(new Error(err));
+                }
+            } else {
+                //Policy already exists. All ok
+                resolve(policyName);
+            }
+        });
+    });
 };
