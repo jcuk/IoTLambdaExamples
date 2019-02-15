@@ -1,5 +1,7 @@
 const https = require('https');
 const jose = require('node-jose');
+const AWS = require('aws-sdk');
+var iot = new AWS.Iot({apiVersion: '2015-05-28'});
 
 const region = 'eu-west-2';
 const userpool_id = 'eu-west-2_6Qk8UHkl5';
@@ -16,15 +18,26 @@ exports.handler = (event, context, callback) => {
             //Claims should now contain department and zone. Form the allowed topic...
             const topic = makeTopic(claims);
             claims.topic = topic;
-            
+
             // .. and the canonical policy name for this topic
             const policyName = makePolicyName(claims);
 
-            const response = {
-                statusCode: 200,
-                body: JSON.stringify(claims),
-            };
-            callback(null, response);
+            createPolicyIfNotExists(policyName, topic)
+                .then(function (result) {
+                    console.log('Policy found or created');
+
+                    const response = {
+                        statusCode: 200,
+                        body: JSON.stringify(claims),
+                    };
+                    callback(null, response);
+                })
+                .catch(function (error) {
+                    console.log('Error caught outside promise');
+                    console.log(error.stack);
+                    callback(error);
+                });
+
         });
 
     } catch (e) {
@@ -115,20 +128,56 @@ var makeTopic = (claims) => {
 var makePolicyName = (claims) => {
     //iotdemo-organisation-dep<department>-zone<zone>
     var policyName = basePolicyName;
-    
+
     if (claims.department=='*') {
         policyName+='All';
     } else {
         policyName+=claims.department;
     }
-    
+
     policyName +='-zone';
-    
+
     if (claims.zone=='*') {
         policyName+='All';
     } else {
         policyName+=claims.zone;
     }
-    
+
     return policyName;
 };
+
+// Given a policy name and topic, check if that IoT policy exists, and if not
+//  create one
+var createPolicyIfNotExists = (policyName, topic) => {
+    return new Promise((resolve, reject) => {
+        var iotPolicyParams = {
+            policyName: policyName
+        };
+
+        iot.getPolicy(iotPolicyParams, function(err, data) {
+            if (err.code === 'ResourceNotFoundException') {
+                console.log('IoT Policy '+policyName+' not found. Creating.');
+
+                //TODO: Populate document
+                iotPolicyParams.policyDocument = '';
+
+                iot.createPolicy(iotPolicyParams, function(err, data) {
+                    if (err) {
+                        //Error creating policy
+                        reject(new Error(err));
+                    } else {
+                        console.log('IoT Policy '+policyName+'created');
+                        resolve(policyName);
+                    }
+                });
+
+            } else if (err) {
+                //Error finding policy
+                reject(new Error(err));
+            } else {
+                //Policy already exists. All ok
+                resolve(policyName);
+            }
+        });
+    });
+}
