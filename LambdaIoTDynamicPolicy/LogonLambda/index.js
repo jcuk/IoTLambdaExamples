@@ -14,7 +14,7 @@ const basePolicyName = 'iotdemo-organisation-dep';
 exports.handler = (event, context, callback) => {
     var token = event.token;
     try {
-        validateToken(token, function(claims) {
+        validateToken(token, (claims) => {
             //Claims should now contain department and zone. Form the allowed topic...
             const topic = makeTopic(claims);
             claims.topic = topic;
@@ -30,9 +30,9 @@ exports.handler = (event, context, callback) => {
 
             //Create a policy (if we need one). Then attach it to our user
             createPolicyIfNotExists(policyName, topic)
-                .then(() => listAllIoTPolicies(context.identity.cognitoIdentityId))
+                .then((attachedPolicies) => listAllIoTPolicies(context.identity.cognitoIdentityId))
                 .then(() => iot.attachPolicy(attachPolicyParmas).promise())
-                .then(function (result) {
+                .then((result) => {
                     console.log('Policy found or created');
                     const response = {
                         statusCode: 200,
@@ -156,11 +156,11 @@ var makePolicyName = (claims) => {
 //  create one. Involves multiple async calls, so implemented as a Promise
 var createPolicyIfNotExists = (policyName, topic) => {
     return new Promise((resolve, reject) => {
-        var iotPolicyParams = {
+        const iotPolicyParams = {
             policyName: policyName
         };
 
-        iot.getPolicy(iotPolicyParams, function(err, data) {
+        iot.getPolicy(iotPolicyParams, (err, data) => {
             if (err) {
                 if (err.code === 'ResourceNotFoundException') {
                     console.log('IoT Policy '+policyName+' not found. Creating.');
@@ -169,7 +169,7 @@ var createPolicyIfNotExists = (policyName, topic) => {
                         '"Statement": [{"Effect": "Allow","Action":["iot:connect","iot:subscribe"],'+
                         '"Resource": "*"},{"Effect": "Allow","Action": ["iot:receive","iot:publish"],'+
                         '"Resource": "arn:aws:iot:'+region+':'+process.env.account+':'+topic+'"}]}';
-                    iot.createPolicy(iotPolicyParams, function(err, data) {
+                    iot.createPolicy(iotPolicyParams, (err, data) => {
                         if (err) {
                             //Error creating policy
                             reject(new Error(err));
@@ -190,26 +190,28 @@ var createPolicyIfNotExists = (policyName, topic) => {
     });
 };
 
-//Detach all IoT policies from the user
+//Find all policies attached to the user and return them as an array
 var listAllIoTPolicies = (target) => {
     return new Promise((resolve, reject) => {
-        var params = {
+        const params = {
           target: target,
           marker: '',
           pageSize: 100,
           recursive: true
         };
-        
+
         iot.listAttachedPolicies(params, function(err, data) {
           if (err) {
               reject(new Error(err));
           } else {
+              const policyList =[];
               for (let element in data.policies) {
                 console.log('Policy:'+JSON.stringify(data.policies[element].policyName));
+                policyList.push(data.policies[element].policyName);
               }
-              resolve();
+              console.log('Found attached policies: '+policyList);
+              resolve(policyList);
           }
         });
-        
     });
 };
