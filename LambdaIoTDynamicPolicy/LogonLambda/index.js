@@ -28,13 +28,14 @@ exports.handler = (event, context, callback) => {
 				target: context.identity.cognitoIdentityId
             };
 
-            //Create a policy (if we need one). Then attach it to our user
+            //Create a policy (if we need one), remove all old policies, then
+            //  attach our new policy to our user
             createPolicyIfNotExists(policyName, topic)
                 .then(() => listAllIoTPolicies(context.identity.cognitoIdentityId))
                 .then((attachedPolicies) => detachPolicies(attachedPolicies, context.identity.cognitoIdentityId))
                 .then(() => iot.attachPolicy(attachPolicyParmas).promise())
                 .then((result) => {
-                    console.log('Policy found or created');
+                    console.log('Policy '+policyName+' attached');
                     const response = {
                         statusCode: 200,
                         body: JSON.stringify(claims),
@@ -191,7 +192,7 @@ var createPolicyIfNotExists = (policyName, topic) => {
     });
 };
 
-//Find all policies attached to the user and return them as an array
+//Find all policies attached to the user and return them as an array from a Promise
 var listAllIoTPolicies = (target) => {
     return new Promise((resolve, reject) => {
         const params = {
@@ -217,28 +218,18 @@ var listAllIoTPolicies = (target) => {
     });
 };
 
-//Detach the policies from the target
+//Detach all listed policies from the target as a Promise
 var detachPolicies = (policyList ,target) => {
-    return new Promise((resolve, reject) => {
-        console.log('Detaching policies: '+policyList);
-        const params = {
-            policyName: '',
-            target: target
-        };
-        
-        policyList.forEach((policy) => {
-            params.policyName = policy;
-            params.policyName = 'agsdgadga';
-            console.log('Detaching policy: '+policy);
-            iot.detachPolicy(params, (err, data) => {
-                if (err) {
-                    console.log('error detatching policy '+err);
-                    reject(new Error(err));
-                    return;
-                }
-            });
-        });
-        
-        resolve();
+    var promisies = [];
+    const params = {
+        policyName: '',
+        target: target
+    };
+
+    policyList.forEach((policy) => {
+        params.policyName = policy;
+        promisies.push(iot.detachPolicy(params).promise());
     });
+
+    return Promise.all(promisies);
 };
