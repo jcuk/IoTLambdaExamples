@@ -122,13 +122,13 @@ var validateToken = (token, callback) => {
 var makeTopic = (claims) => {
     var topic = baseTopic;
     if (claims.department=='*') {
-        return topic+'/*';
+        return topic;
     }
     topic += '/department'+claims.department;
     if (claims.zone=='*') {
-        return topic+'/*';
+        return topic;
     }
-    return topic + '/zone'+claims.zone+'/*';
+    return topic + '/zone'+claims.zone;
 };
 
 // Given the zone and the department a user has access to, form the canonical
@@ -170,7 +170,7 @@ var createPolicyIfNotExists = (policyName, topic) => {
                     iotPolicyParams.policyDocument = '{"Version": "2012-10-17",'+
                         '"Statement": [{"Effect": "Allow","Action":["iot:connect","iot:subscribe"],'+
                         '"Resource": "*"},{"Effect": "Allow","Action": ["iot:receive","iot:publish"],'+
-                        '"Resource": "arn:aws:iot:'+region+':'+process.env.account+':'+topic+'"}]}';
+                        '"Resource": "arn:aws:iot:'+region+':'+process.env.account+':topic/'+topic+'/*"}]}';
                     iot.createPolicy(iotPolicyParams, (err, data) => {
                         if (err) {
                             //Error creating policy
@@ -220,7 +220,7 @@ var listAllIoTPolicies = (target) => {
 
 //Detach all listed policies from the target as a Promise
 var detachPolicies = (policyList ,target) => {
-    var promisies = [];
+    const promisies = [];
     const params = {
         policyName: '',
         target: target
@@ -228,6 +228,7 @@ var detachPolicies = (policyList ,target) => {
 
     policyList.forEach((policy) => {
         params.policyName = policy;
+        console.log('Detaching policy '+policy);
         promisies.push(iot.detachPolicy(params).promise());
     });
 
