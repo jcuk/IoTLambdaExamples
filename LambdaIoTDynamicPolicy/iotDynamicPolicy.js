@@ -5,11 +5,11 @@ const cognitoAppId = '41pboo7igtsbm6bfi18sje5p96';
 const identityPool = 'eu-west-2:72c461e0-ca5f-47ce-882e-bee6cc92812b';
 const cognitoLogin = 'cognito-idp.'+region+'.amazonaws.com/'+userPoolId;
 const iotEndpoint = 'ah0p1efr5o1cl-ats.iot.eu-west-2.amazonaws.com';
-const topic = 'iotdemo/lambda/schedule';
 
 var pahoClient;
 
 var x = 0;
+var topic;
 
 function testLambda(params) {
 
@@ -90,12 +90,15 @@ function testLambda(params) {
 							console.log('Lambda called');
 							var response = JSON.parse(data.Payload);
 							//Body of response contains department / zone e.g:
-							// {"zone":"A","department":"1"}"
+							// {"zone":"A","department":"1","topic":"/iot/topic/name/*"}"
+							
+							const subDetails = JSON.parse(response.body);
+							topic = subDetails.topic;
 							
 							//Subscribe to IoT 
 						    var requestUrl = SigV4Utils.getSignedUrl(iotEndpoint, region, AWS.config.credentials);
 						    
-						    subscribe(requestUrl);
+						    subscribe(requestUrl, topic);
 						}
 					});
 				}
@@ -119,23 +122,26 @@ function testLambda(params) {
 //Publish a message to our IoT Topic
 function publishMessage(payload) {
     message = new Paho.MQTT.Message(payload);
-    message.destinationName = topic;
+    message.destinationName = topic+'/browser';
     pahoClient.send(message);
 }
 
 //Subscribe to an IoT Topic
-function subscribe(requestUrl) {
+function subscribe(requestUrl, topic) {
 	console.log('URL: '+requestUrl);
+	console.log('Topic: '+topic);
     var clientId = String(Math.random()).replace('.', '');
     pahoClient = new Paho.MQTT.Client(requestUrl, clientId);
+    pahoClient.onConnectionLost = connectionLost;
+    
     var connectOptions = {
         onSuccess: function () {
             console.log('connected');
 
             //subscribe to the topic as soon as we are connected
-            pahoClient.subscribe(topic);
+            pahoClient.subscribe(topic+'/+');
             
-            alert('Connected to IoT');
+            alert('Connected to IoT topic '+topic);
             document.getElementById("messageButton").disabled = false; 
             
         },
@@ -156,6 +162,13 @@ function subscribe(requestUrl) {
 	        console.log("error: " + e);
 	    }
     };
+}
+
+//called when the client loses its connection
+function connectionLost(responseObject) {
+	if (responseObject.errorCode !== 0) {
+		alert("IoT Connection terminated: " + responseObject.errorMessage);
+	}
 }
 
 //Update the page with the incoming message, and move all the old messages down the page
