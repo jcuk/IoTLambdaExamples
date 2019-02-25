@@ -7,6 +7,7 @@ const cognitoLogin = 'cognito-idp.'+region+'.amazonaws.com/'+userPoolId;
 const iotEndpoint = 'ah0p1efr5o1cl-ats.iot.eu-west-2.amazonaws.com';
 
 var pahoClient;
+var cognitoUser;
 
 var x = 0;
 var topic;
@@ -41,7 +42,7 @@ function logon(params) {
 	AWS.config.region = region;
 
 	//Authenticate with Cognito
-	var cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+	cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
 	cognitoUser.authenticateUser(authenticationDetails, {
 		onSuccess: function (result) {
 			var idToken = result.idToken.jwtToken;
@@ -62,7 +63,7 @@ function logon(params) {
 			//Now use our cognito logon to get our AWS credentials
 			AWS.config.credentials.get(function(err) {
 				if (err) {
-					window.document.body.style.cursor = "initial";
+					loggedout();
 					alert(err);
 					console.log(err);
 				} else {
@@ -85,9 +86,11 @@ function logon(params) {
 					//Invoke the lambda and parse the response
 					lambda.invoke(params, function(err, data) {
 						if (err) {
+							loggedout();
 							alert(err);
 							console.log(err, err.stack);
 						} else {
+							loggedin();
 							console.log('Lambda called');
 							var response = JSON.parse(data.Payload);
 							//Body of response contains department / zone e.g:
@@ -101,7 +104,6 @@ function logon(params) {
 						    
 						    subscribe(requestUrl, topic);
 						}
-						window.document.body.style.cursor = "initial";
 					});
 				}
 			});
@@ -109,13 +111,13 @@ function logon(params) {
 
 		//Login failure
 		onFailure: function(err) {
-			window.document.body.style.cursor = "initial";
+			loggedout();
 			alert(err);
 		},
 
 		//New password flow. Only used for first log in
 		newPasswordRequired: function(usrAttributes, requiredAttributes) {
-			window.document.body.style.cursor = "initial";
+			loggedout();
 			alert('New password required');
 			delete usrAttributes.email_verified;
 			cognitoUser.completeNewPasswordChallenge('Password1', usrAttributes, this);
@@ -146,7 +148,7 @@ function subscribe(requestUrl, topic) {
             pahoClient.subscribe(topic+'/#');
             
             alert('Connected to IoT topic '+topic);
-            document.getElementById("messageButton").disabled = false; 
+            document.getElementById('messageButton').disabled = false; 
             
         },
         useSSL: true,
@@ -160,7 +162,7 @@ function subscribe(requestUrl, topic) {
 
     pahoClient.onMessageArrived = function (message) {
 	    try {
-	        console.log("message: " +  message.payloadString);
+	        console.log('message: ' +  message.payloadString);
 	        newMessage(message.payloadString)
 	    } catch (e) {
 	        console.log("error: " + e);
@@ -171,8 +173,9 @@ function subscribe(requestUrl, topic) {
 //called when the client loses its connection
 function connectionLost(responseObject) {
 	if (responseObject.errorCode !== 0) {
-		alert("IoT Connection terminated: " + responseObject.errorMessage);
+		alert('IoT Connection terminated: ' + responseObject.errorMessage);
 	}
+	logoff();
 }
 
 //Update the page with the incoming message, and move all the old messages down the page
@@ -187,7 +190,31 @@ function newMessage(message) {
 	incomingSlot.innerHTML = message;
 	
 	setTimeout(function() {
-		incomingSlot.classList.remove("flash");
+		incomingSlot.classList.remove('flash');
 	}, 650);
-	incomingSlot.classList.add("flash");
+	incomingSlot.classList.add('flash');
+}
+
+function logoff() {
+	console.log('Logging out and unsubscribing');
+	cognitoUser.signOut();
+	try {
+		pahoClient.disconnect();
+	} catch(exception) {
+	}
+	
+	loggedout();
+}
+
+function loggedin() {
+	window.document.body.style.cursor = 'initial';
+	document.getElementById('loginButton').disabled = true;
+	document.getElementById('logoutButton').disabled = false;
+}
+
+function loggedout() {
+	window.document.body.style.cursor = 'initial';
+	document.getElementById('messageButton').disabled = true;
+	document.getElementById('loginButton').disabled = false;
+	document.getElementById('logoutButton').disabled = true;
 }
