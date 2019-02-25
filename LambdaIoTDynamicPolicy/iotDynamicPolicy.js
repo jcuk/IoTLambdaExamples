@@ -139,7 +139,7 @@ function subscribe(requestUrl, topic) {
             console.log('connected');
 
             //subscribe to the topic as soon as we are connected
-            pahoClient.subscribe(topic+'/+');
+            pahoClient.subscribe(topic+'/#');
             
             alert('Connected to IoT topic '+topic);
             document.getElementById("messageButton").disabled = false; 
