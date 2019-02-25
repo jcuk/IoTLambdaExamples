@@ -11,9 +11,9 @@ var pahoClient;
 var x = 0;
 var topic;
 
-function testLambda(params) {
-
-//	Single user available 'iotUser' with password 'Password1';
+function logon(params) {
+	window.document.body.style.cursor = "wait";
+//	Users available 'iotAlice', 'iotBob', 'iotCharlie', 'iotDavid' all with password 'Password1';
 	var user = params.formUserName.value;
 	var pass = params.formPassword.value
 	
@@ -62,6 +62,7 @@ function testLambda(params) {
 			//Now use our cognito logon to get our AWS credentials
 			AWS.config.credentials.get(function(err) {
 				if (err) {
+					window.document.body.style.cursor = "initial";
 					alert(err);
 					console.log(err);
 				} else {
@@ -100,6 +101,7 @@ function testLambda(params) {
 						    
 						    subscribe(requestUrl, topic);
 						}
+						window.document.body.style.cursor = "initial";
 					});
 				}
 			});
@@ -107,11 +109,13 @@ function testLambda(params) {
 
 		//Login failure
 		onFailure: function(err) {
+			window.document.body.style.cursor = "initial";
 			alert(err);
 		},
 
 		//New password flow. Only used for first log in
-		newPasswordRequired: function(usrAttributes, requiredAttributes) {	
+		newPasswordRequired: function(usrAttributes, requiredAttributes) {
+			window.document.body.style.cursor = "initial";
 			alert('New password required');
 			delete usrAttributes.email_verified;
 			cognitoUser.completeNewPasswordChallenge('Password1', usrAttributes, this);
